@@ -14,29 +14,12 @@ public class RobotController : MonoBehaviour
     {
         float vert = Input.GetAxisRaw("Vertical");
 
-        float bodyAngle = GetBodyAngle();
-
-
-
-        //float hor = Input.GetAxisRaw("Horizontal");
-        Debug.Log("vert: " + vert);// + " ,hor: " + hor);
-
-        //float left = 0.5f * vert + ((hor == 1f) ? 0.5f * vert : 0f);
-        //float right = 0.5f * vert + ((hor == -1f) ? 0.5f * vert : 0f);
-        float left = vert * 0.5f;
-        float right = vert * 0.5f;
+        float left = 0.5f * vert + ((hor == 1f) ? 0.5f * vert : 0f);
+        float right = 0.5f * vert + ((hor == -1f) ? 0.5f * vert : 0f);
         Debug.Log("left: " + left + " ,right: " + right);
 
-        leftWheel.angularVelocity = leftWheel.transform.right * left * speed;
-        rightWheel.angularVelocity = rightWheel.transform.right * right * speed;
-    }
-
-    public float CalcDesiredAngle()
-    {
-        float input = Input.GetAxisRaw("Vertical");
-        if (input == 1f)
-            return movingAngle;
-        else if(I)
+        //leftWheel.angularVelocity = leftWheel.transform.right * left * speed;
+        //rightWheel.angularVelocity = rightWheel.transform.right * right * speed;
 
     }
 
