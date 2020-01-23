@@ -17,11 +17,10 @@ public class RobotController : MonoBehaviour
 
         float left = 0.5f * vert + ((hor == 1f) ? 0.5f * vert : 0f);
         float right = 0.5f * vert + ((hor == -1f) ? 0.5f * vert : 0f);
-
         Debug.Log("left: " + left + " ,right: " + right);
 
-        leftWheel.angularVelocity = leftWheel.transform.right * left * speed;
-        rightWheel.angularVelocity = rightWheel.transform.right * right * speed;
+        //leftWheel.angularVelocity = leftWheel.transform.right * left * speed;
+        //rightWheel.angularVelocity = rightWheel.transform.right * right * speed;
 
         float bodyAngle = GetBodyAngle();
     }
