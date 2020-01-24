@@ -7,7 +7,6 @@ public class RobotController : MonoBehaviour
     [SerializeField] Rigidbody leftWheel;
     [SerializeField] Rigidbody rightWheel;
     [SerializeField] Transform robotBody;
-
     [SerializeField] float maxAngularSpeed;
     [SerializeField] float movingAngle = 20f;
     [SerializeField] float validDeltaAngle = 5f;
@@ -23,10 +22,9 @@ public class RobotController : MonoBehaviour
     public float LeftMotorSpeed { get; private set; }
     public float RightMotorSpeed { get; private set; }
 
-    public float GetDeltaAngle()
-    {
-        return CalcDesiredAngle() - GetBodyAngle();
-    }
+    public float AngleError { get; private set; }
+    public float BodyAngle { get; private set; }
+    public float GoalBodyAngle { get; private set; }
 
     private void Start()
     {
@@ -34,17 +32,14 @@ public class RobotController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        float bodyAngle = GetBodyAngle();
-        float goalBodyAngle = CalcDesiredAngle();
+        BodyAngle = HelperMath.GetAngleBetween(Vector3.up, robotBody.up, robotBody.right);
+        GoalBodyAngle = CalcDesiredAngle();
+        AngleError = CalcError(BodyAngle, GoalBodyAngle);
 
-        float deltaAngle = CalcError(bodyAngle, goalBodyAngle);
-        if (Mathf.Abs(deltaAngle) > validDeltaAngle)
-        {
-            if (deltaAngle > 0)
-                Move(maxAngularSpeed);
-            else
-                Move(-maxAngularSpeed);
-        }
+        if (AngleError > validDeltaAngle)
+            Move(-maxAngularSpeed);
+        else if (AngleError < -validDeltaAngle)
+            Move(maxAngularSpeed);
         else
         {
             // move with inputs or stay still
@@ -60,23 +55,12 @@ public class RobotController : MonoBehaviour
 
     public void Move(float speed)
     {
-        LeftMotorSpeed= speed;
+        LeftMotorSpeed = speed;
         RightMotorSpeed = speed;
         leftWheel.angularVelocity = leftWheel.transform.right * speed;
         rightWheel.angularVelocity = rightWheel.transform.right * speed;
     }
 
-    public float GetBodyAngle()
-    {
-        float cosAngle = Vector3.Dot(robotBody.up, Vector3.up);
-        if (cosAngle == 1f)
-            return 0f;
-
-        Vector3 cross = Vector3.Cross(transform.up, Vector3.up);
-        if (Vector3.Dot(cross, transform.right) > 0f)
-            return Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
-        return -Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
-    }
     public float CalcDesiredAngle()
     {
         //float vertInput = Input.GetAxisRaw("Vertical");
@@ -91,5 +75,21 @@ public class RobotController : MonoBehaviour
     {
         float currError = optimalAngle - angle;
         return currError;
+    }
+}
+
+public static class HelperMath
+{
+    public static float GetAngleBetween(Vector3 from, Vector3 to, Vector3 referenceNormal)
+    {
+        float cosAngle = Vector3.Dot(from, to);
+        if (cosAngle == 1f)
+            return 0f;
+
+        Vector3 cross = Vector3.Cross(from, to);
+        Debug.Log(Vector3.Dot(cross, referenceNormal));
+        if (Vector3.Dot(cross, referenceNormal) > 0f)
+            return Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
+        return -Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
     }
 }
