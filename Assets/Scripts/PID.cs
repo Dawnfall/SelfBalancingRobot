@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PID : MonoBehaviour
+[System.Serializable]
+public class PID
 {
     [SerializeField] float _kp;
     [SerializeField] float _ki;
     [SerializeField] float _kd;
 
-    public float Kp { get; set; }
-    public float Ki { get; set; }
-    public float Kd { get; set; }
+    public float Kp { get { return _kp; } set { _kp = value; } }
+    public float Ki { get { return _ki; } set { _ki = value; } }
+    public float Kd { get { return _kd; } set { _kd = value; } }
 
     public float Ep { get; private set; }
     public float Ei { get; private set; }
@@ -18,13 +19,6 @@ public class PID : MonoBehaviour
     public float Err { get; private set; }
 
     private float m_prevError = 0f;
-
-    private void Awake()
-    {
-        Kp = _kp;
-        Ki = _ki;
-        Kd = _kd;
-    }
 
 
     public float CalcError(float deltaTime, float error) //0 - 90
