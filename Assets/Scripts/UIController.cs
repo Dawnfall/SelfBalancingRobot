@@ -13,33 +13,31 @@ public class UIController : MonoBehaviour
     [SerializeField] Text _pidMotorText;
 
     //[SerializeField] SelfBalanceController _robot;
-    [SerializeField] AdvancedRobot _advRobot;
-    private void Awake()
-    {
-        //_robot = GameObject.FindObjectOfType<SelfBalanceController>();
-        _advRobot = GameObject.FindObjectOfType<AdvancedRobot>();
-    }
+    public IRobotController robot;
+
     private void Update()
     {
-        //_wheelsSpeedText.text = $"Speed L: {_robot.RobotController.LeftWheelSpeed}  R: {_robot.RobotController.RightWheelSpeed}";
-        //_wheelsTorqueText.text = $"Motor L:{_robot.RobotController.LeftMotorPower.ToString("0.000")}  R: {_robot.RobotController.RightMotorPower.ToString("0.000")}";
-        //_bodyText.text = $"Ang: {_robot.BodyAngle.ToString("0.00")}  Goal: {_robot.GoalBodyAngle.ToString("0.00")}  Err: {_robot.Error.ToString("0.00")}";
-        //_pidText.text =
-        //    $"Ep: {_robot.PidController.Ep.ToString("0.000")}  Ei: {_robot.PidController.Ei.ToString("0.000")}  Ed: {_robot.PidController.Ed.ToString("0.000")}\n" +
-        //    $"Err: {_robot.PidController.Err.ToString("0.000")}";
+        if (robot == null)
+            return;
 
-        _wheelsSpeedText.text = $"Speed L: {_advRobot.Robot.LeftWheelSpeed}  R: {_advRobot.Robot.RightWheelSpeed}";
-        _wheelsTorqueText.text = $"Motor L:{_advRobot.Robot.LeftMotorPower.ToString("0.000")}  R: {_advRobot.Robot.RightMotorPower.ToString("0.000")}";
+        _wheelsSpeedText.text = $"Speed L: {robot.Robot.LeftWheelSpeed}  R: {robot.Robot.RightWheelSpeed}";
+        _wheelsTorqueText.text = $"Motor L:{robot.Robot.LeftMotorPower.ToString("0.000")}  R: {robot.Robot.RightMotorPower.ToString("0.000")}";
 
-        _bodyText.text = $"Curr: {_advRobot.BodyAngle.ToString("0.00")}  Goal: {_advRobot.GoalBodyAngle.ToString("0.00")}";
-        _pidAngleText.text =
-            $"Ep: {_advRobot.PIDAngle.Ep.ToString("0.000")}  Ei: {_advRobot.PIDAngle.Ei.ToString("0.000")}  Ed: {_advRobot.PIDAngle.Ed.ToString("0.000")}\n" +
-            $"Err: {_advRobot.PIDAngle.Err.ToString("0.000")}";
+        SelfBalanceController selfBalanceController = robot as SelfBalanceController;
+        if (selfBalanceController != null)
+        {
+            _bodyText.text = $"Curr: {selfBalanceController.BodyAngle.ToString("0.00")}  Goal: {selfBalanceController.GoalBodyAngle.ToString("0.00")}";
+            _pidAngleText.text =
+                $"Ep: {selfBalanceController.PIDAngle.Ep.ToString("0.000")}  Ei: {selfBalanceController.PIDAngle.Ei.ToString("0.000")}  Ed: {selfBalanceController.PIDAngle.Ed.ToString("0.000")}\n" +
+                $"Err: {selfBalanceController.PIDAngle.Err.ToString("0.000")}";
 
-        _motorPowerText.text = $"Curr: {_advRobot.AvgMotorPower.ToString("0.00")}  Goal: {_advRobot.GoalMotorPower.ToString("0.00")}";
-        _pidMotorText.text =
-        $"Ep: {_advRobot.PIDMotor.Ep.ToString("0.000")}  Ei: {_advRobot.PIDMotor.Ei.ToString("0.000")}  Ed: {_advRobot.PIDMotor.Ed.ToString("0.000")}\n" +
-        $"Err: {_advRobot.PIDMotor.Err.ToString("0.000")}";
+            _motorPowerText.text = $"Curr: {robot.Robot.MotorPower.ToString("0.00")}  Goal: {selfBalanceController.GoalMotorPower.ToString("0.00")}";
+            _pidMotorText.text =
+            $"Ep: {selfBalanceController.PIDMotor.Ep.ToString("0.000")}  Ei: {selfBalanceController.PIDMotor.Ei.ToString("0.000")}  Ed: {selfBalanceController.PIDMotor.Ed.ToString("0.000")}\n" +
+            $"Err: {selfBalanceController.PIDMotor.Err.ToString("0.000")}";
+        }
+
+
     }
 
 

@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public interface IRobotController
+{
+    RobotController Robot { get; }
+}
 public class RobotController : MonoBehaviour
 {
     [SerializeField] float _maxAngularVelocity;
@@ -29,8 +33,11 @@ public class RobotController : MonoBehaviour
         private set { RightWheel.angularVelocity = value; }
     }
 
-    public float LeftMotorPower { get; set; } = 0f;
-    public float RightMotorPower { get; set; } = 0f;
+    public float MotorPower { get; set; } = 0f;
+    public float DiffDrive { get; set; } = 0f;
+
+    public float LeftMotorPower { get { return MotorPower * (1f + DiffDrive); } }
+    public float RightMotorPower { get { return MotorPower * (1f - DiffDrive); } }
 
 
     private void Start()
@@ -41,8 +48,8 @@ public class RobotController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        LeftWheel.AddTorque(LeftWheel.transform.right * LeftMotorPower * MaxMotorPower);
-        RightWheel.AddTorque(RightWheel.transform.right * RightMotorPower * MaxMotorPower);
+        LeftWheel.AddTorque(LeftWheel.transform.right * LeftMotorPower * MaxMotorPower * (1f + DiffDrive));
+        RightWheel.AddTorque(RightWheel.transform.right * RightMotorPower * MaxMotorPower * (1f - DiffDrive));
     }
 
     public float GetBodyAngle()
