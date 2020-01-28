@@ -4,111 +4,97 @@ using UnityEngine;
 
 public class RobotController : MonoBehaviour
 {
-    public Rigidbody leftWheel;
-    public Rigidbody rightWheel;
-    public Transform robotBody;
+    [SerializeField] float _maxAngularVelocity;
 
-    public float maxMotorTorque;
-    public float maxAngularVelocity;
+    [SerializeField] Rigidbody _leftWheel;
+    [SerializeField] Rigidbody _rightWheel;
+    [SerializeField] Transform _robotBody;
+    [SerializeField] float _maxMotorPower;
+    [SerializeField] float _maxBodyAngle;
+
+    public Rigidbody LeftWheel { get { return _leftWheel; } set { _leftWheel = value; } }
+    public Rigidbody RightWheel { get { return _rightWheel; } set { _rightWheel = value; } }
+    public Transform RobotBody { get { return _robotBody; } set { _robotBody = value; } }
+    public float MaxMotorPower { get { return _maxMotorPower; } set { _maxMotorPower = value; } }
+    public float MaxBodyAngle { get { return _maxBodyAngle; } set { _maxBodyAngle = value; } }
+
     public Vector3 LeftWheelSpeed
     {
-        get { return leftWheel.angularVelocity; }
-        private set { leftWheel.angularVelocity = value; }
+        get { return LeftWheel.angularVelocity; }
+        private set { LeftWheel.angularVelocity = value; }
     }
     public Vector3 RightWheelSpeed
     {
-        get { return rightWheel.angularVelocity; }
-        set { rightWheel.angularVelocity = value; }
+        get { return RightWheel.angularVelocity; }
+        private set { RightWheel.angularVelocity = value; }
     }
 
-    public float LeftMotorPower { get; set; }
-    public float RightMotorPower { get; set; }
-
-    public float MaxLeftAngularVelocity { get { return LeftMotorPower * maxAngularVelocity; } }
-    public float MaxRightAngularVelocity { get { return RightMotorPower * maxAngularVelocity; } }
+    public float LeftMotorPower { get; set; } = 0f;
+    public float RightMotorPower { get; set; } = 0f;
 
 
     private void Start()
     {
-        leftWheel.maxAngularVelocity = maxAngularVelocity;
-        rightWheel.maxAngularVelocity = maxAngularVelocity;
+        LeftWheel.maxAngularVelocity = _maxAngularVelocity;
+        RightWheel.maxAngularVelocity = _maxAngularVelocity;
     }
 
     private void FixedUpdate()
     {
-        //SmoothDirection();
-
-        //float newLeftX = LeftWheelSpeed.x + LeftMotorPower * maxMotorTorque * Time.fixedDeltaTime;
-        //if (Mathf.Abs(newLeftX) < MaxLeftAngularVelocity || Mathf.Abs(newLeftX) < LeftWheelSpeed.x)
-        //    LeftWheelSpeed = new Vector3(newLeftX, 0f, 0f);
-
-        //float newRightX = RightWheelSpeed.x + RightMotorPower * maxMotorTorque * Time.fixedDeltaTime;
-        //if (Mathf.Abs(newRightX) < MaxRightAngularVelocity || Mathf.Abs(newRightX) < RightWheelSpeed.x)
-        //    RightWheelSpeed = new Vector3(newRightX, 0f, 0f);
-
-        leftWheel.AddTorque(leftWheel.transform.right * LeftMotorPower * maxMotorTorque);
-        rightWheel.AddTorque(rightWheel.transform.right * RightMotorPower * maxMotorTorque);
-
-
-
-        //leftWheel.angularVelocity = new Vector3(leftWheel.angularVelocity.x, 0f, 0f);
-        //rightWheel.angularVelocity = new Vector3(rightWheel.angularVelocity.x, 0f, 0f); ;
-
-
-        //if (Mathf.Abs(Error) > validError)
-        //else
-        //{
-        // move with inputs or stay still
-        //if (Input.GetAxisRaw("Vertical") == 1f)
-        //   Move(-maxAngularSpeed);
-        //else if (Input.GetAxisRaw("Vertical") == -1f)
-        //    Move(maxAngularSpeed);
-        // }
-        //leftWheel.angularVelocity = leftWheel.transform.right * left * speed;
-        //rightWheel.angularVelocity = rightWheel.transform.right * right * speed;
+        LeftWheel.AddTorque(LeftWheel.transform.right * LeftMotorPower * MaxMotorPower);
+        RightWheel.AddTorque(RightWheel.transform.right * RightMotorPower * MaxMotorPower);
     }
 
-    //private void MoveByControlls()
-    //{
-    //    float vertInput = Input.GetAxisRaw("Vertical");
-    //    float horInput = Input.GetAxisRaw("Horizontal");
-
-    //    float deltaTorque = vertInput * horInput * diffDriveRate;
-
-    //    LeftMotorTorque = leftWheel.transform.right * (vertInput + deltaTorque) * maxTorque;
-    //    RightMotorTorque = rightWheel.transform.right * (vertInput - deltaTorque) * maxTorque;
-    //    leftWheel.AddTorque(LeftMotorTorque);
-    //    rightWheel.AddTorque(RightMotorTorque);
-    //}
-
-
-    private void SmoothDirection()
+    public float GetBodyAngle()
     {
-        Vector3 vec;
-        vec = LeftWheelSpeed;
-        vec.y = 0f;
-        vec.z = 0f;
-        leftWheel.angularVelocity = vec;
+        float cosAngle = Vector3.Dot(RobotBody.up, Vector3.up);
+        if (cosAngle == 1f)
+            return 0f;
 
-        vec = RightWheelSpeed;
-        vec.y = 0f;
-        vec.z = 0f;
-        rightWheel.angularVelocity = vec;
-
-        vec = transform.InverseTransformDirection(leftWheel.velocity);
-        vec.y = 0f;
-        vec.z = 0f;
-        leftWheel.velocity = transform.TransformDirection(vec);
-
-        vec = transform.InverseTransformDirection(rightWheel.velocity);
-        vec.y = 0f;
-        vec.z = 0f;
-        rightWheel.velocity = transform.TransformDirection(vec);
+        Vector3 cross = Vector3.Cross(RobotBody.up, Vector3.up);
+        if (Vector3.Dot(cross, RobotBody.right) > 0f)
+            return Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
+        return -Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
     }
-
     private void OnDrawGizmos()
     {
         Gizmos.DrawRay(transform.position, transform.forward * 2f);
     }
 }
 
+//private void MoveByControlls()
+//{
+//    float vertInput = Input.GetAxisRaw("Vertical");
+//    float horInput = Input.GetAxisRaw("Horizontal");
+
+//    float deltaTorque = vertInput * horInput * diffDriveRate;
+
+//    LeftMotorTorque = leftWheel.transform.right * (vertInput + deltaTorque) * maxTorque;
+//    RightMotorTorque = rightWheel.transform.right * (vertInput - deltaTorque) * maxTorque;
+//    leftWheel.AddTorque(LeftMotorTorque);
+//    rightWheel.AddTorque(RightMotorTorque);
+//}
+
+//private void SmoothDirection()
+//{
+//    Vector3 vec;
+//    vec = LeftWheelSpeed;
+//    vec.y = 0f;
+//    vec.z = 0f;
+//    leftWheel.angularVelocity = vec;
+
+//    vec = RightWheelSpeed;
+//    vec.y = 0f;
+//    vec.z = 0f;
+//    rightWheel.angularVelocity = vec;
+
+//    vec = transform.InverseTransformDirection(leftWheel.velocity);
+//    vec.y = 0f;
+//    vec.z = 0f;
+//    leftWheel.velocity = transform.TransformDirection(vec);
+
+//    vec = transform.InverseTransformDirection(rightWheel.velocity);
+//    vec.y = 0f;
+//    vec.z = 0f;
+//    rightWheel.velocity = transform.TransformDirection(vec);
+//}

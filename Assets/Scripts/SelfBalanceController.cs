@@ -18,16 +18,20 @@ public class SelfBalanceController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        BodyAngle = HelperMath.GetAngleBetween(Vector3.up, RobotController.robotBody.up, RobotController.robotBody.right);
-        CalcGoalAngle();
-
-        float inError = (BodyAngle - GoalBodyAngle)/_maxAbsValue;
-        Error = PidController.CalcError(Time.fixedDeltaTime, inError);
-
+        CalcSpeedError();
         CalcDiffDrive();
 
         RobotController.LeftMotorPower = Error - Error * DiffDrive;
         RobotController.RightMotorPower = Error + Error * DiffDrive;
+    }
+
+    private void CalcSpeedError()
+    {
+        BodyAngle = RobotController.GetBodyAngle();
+        CalcGoalAngle();
+
+        float inError = (BodyAngle - GoalBodyAngle) / _maxAbsValue;
+        Error = PidController.CalcError(Time.fixedDeltaTime, inError);
     }
 
     private void CalcGoalAngle()
