@@ -8,48 +8,45 @@ public interface IRobotController
 }
 public class RobotController : MonoBehaviour
 {
-    [SerializeField] float _maxAngularVelocity;
-
-    [SerializeField] Rigidbody _leftWheel;
-    [SerializeField] Rigidbody _rightWheel;
     [SerializeField] Transform _robotBody;
-    [SerializeField] float _maxMotorPower;
-    [SerializeField] float _maxBodyAngle;
+    [SerializeField] WheelController _leftWheel;
+    [SerializeField] WheelController _rightWheel;
+    [SerializeField] RobotParameters _robotParams;
 
-    public Rigidbody LeftWheel { get { return _leftWheel; } set { _leftWheel = value; } }
-    public Rigidbody RightWheel { get { return _rightWheel; } set { _rightWheel = value; } }
-    public Transform RobotBody { get { return _robotBody; } set { _robotBody = value; } }
-    public float MaxMotorPower { get { return _maxMotorPower; } set { _maxMotorPower = value; } }
-    public float MaxBodyAngle { get { return _maxBodyAngle; } set { _maxBodyAngle = value; } }
+    public Transform RobotBody { get { return _robotBody; } }
+    public WheelController LeftWheel { get { return _leftWheel; } }
+    public WheelController RightWheel { get { return _rightWheel; } }
+    public RobotParameters Params { get { return _robotParams; } }
 
-    public Vector3 LeftWheelSpeed
-    {
-        get { return LeftWheel.angularVelocity; }
-        private set { LeftWheel.angularVelocity = value; }
-    }
-    public Vector3 RightWheelSpeed
-    {
-        get { return RightWheel.angularVelocity; }
-        private set { RightWheel.angularVelocity = value; }
-    }
+    public float AvgSignedVelocity { get { return (LeftWheel.SignedVelocity + RightWheel.SignedVelocity) / 2f; } }
 
-    public float MotorPower { get; set; } = 0f;
-    public float DiffDrive { get; set; } = 0f;
+    //*****************
+    // set by balance controller
 
-    public float LeftMotorPower { get { return MotorPower * (1f + DiffDrive); } }
-    public float RightMotorPower { get { return MotorPower * (1f - DiffDrive); } }
+    public float GoalAvgVelocity { get; set; }
+    public float GoalDiffDrive { get; set; }
 
+    //******************
+    // user inputs
+
+    public float InputAvgVelocity { get; private set; }
 
     private void Start()
     {
-        LeftWheel.maxAngularVelocity = _maxAngularVelocity;
-        RightWheel.maxAngularVelocity = _maxAngularVelocity;
+        LeftWheel.WheelRigidBody.maxAngularVelocity = 10000f;
+        RightWheel.WheelRigidBody.maxAngularVelocity = 10000f;
+    }
+
+    private void Update()
+    {
+        InputAvgVelocity = Input.GetAxisRaw("Vertical") * Params.MaxVelocity;
+        GoalDiffDrive = Input.GetAxisRaw("Horizontal") * Params.DiffDriveRate;
     }
 
     private void FixedUpdate()
     {
-        LeftWheel.AddTorque(LeftWheel.transform.right * LeftMotorPower * MaxMotorPower * (1f + DiffDrive));
-        RightWheel.AddTorque(RightWheel.transform.right * RightMotorPower * MaxMotorPower * (1f - DiffDrive));
+        LeftWheel.UpdateWheel(GoalAvgVelocity * (1f - GoalDiffDrive), Params.MaxVelocity * (1f + GoalDiffDrive), Params.MaxMotorPower);
+        RightWheel.UpdateWheel(GoalAvgVelocity * (1f + GoalDiffDrive), Params.MaxVelocity * (1f - GoalDiffDrive), Params.MaxMotorPower);
     }
 
     public float GetBodyAngle()
@@ -58,17 +55,32 @@ public class RobotController : MonoBehaviour
         if (cosAngle == 1f)
             return 0f;
 
-        Vector3 cross = Vector3.Cross(RobotBody.up, Vector3.up);
+        Vector3 cross = Vector3.Cross(Vector3.up, RobotBody.up);
         if (Vector3.Dot(cross, RobotBody.right) > 0f)
             return Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
         return -Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
     }
     private void OnDrawGizmos()
     {
-        Gizmos.DrawRay(transform.position, transform.forward * 2f);
+        Gizmos.DrawRay(LeftWheel.WheelRigidBody.transform.position, LeftWheel.WheelForward * LeftWheel.SignedVelocity);
+        Gizmos.DrawRay(RightWheel.WheelRigidBody.transform.position, RightWheel.WheelForward * LeftWheel.SignedVelocity);
     }
 }
 
+[System.Serializable]
+public class RobotParameters
+{
+    [SerializeField] float _diffDriveRate;
+    [SerializeField] float _maxBodyAngle;
+    [SerializeField] float _maxMotorPower;
+    [SerializeField] float _maxVelocity;
+
+    public float DiffDriveRate { get { return _diffDriveRate; } set { _diffDriveRate = value; } }
+    public float MaxBodyAngle { get { return _maxBodyAngle; } set { _maxBodyAngle = value; } }
+    public float MaxMotorPower { get { return _maxMotorPower; } set { _maxMotorPower = value; } }
+    public float MaxVelocity { get { return _maxVelocity; } set { _maxVelocity = value; } }
+
+}
 //private void MoveByControlls()
 //{
 //    float vertInput = Input.GetAxisRaw("Vertical");

@@ -24,12 +24,15 @@ public class PID
     public float CalcError(float deltaTime, float error) //0 - 90
     {
         float ki = Ki * deltaTime;
-        float kd = Kd * deltaTime;
+        float kd = Kd * deltaTime * 1000f;
 
         Ep = Kp * error; //proportional error
-        Ei = Mathf.Clamp(Ei + error * ki, -1f, 1f); //integral error
+        //Ei = Mathf.Clamp(Ei + error * ki, -1f, 1f); //integral error
+        Ei = Ei + error * ki; //integral error
+
         Ed = (error - m_prevError) * kd; //derivative error
-        Err = Mathf.Clamp(Ep + Ei + Ed, -1f, 1f); //total error as the sum
+        //Err = Mathf.Clamp(Ep + Ei + Ed, -1f, 1f); //total error as the sum
+        Err = Ep + Ei + Ed; //total error as the sum
 
         m_prevError = error;
         return Err;

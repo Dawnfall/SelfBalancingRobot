@@ -7,24 +7,24 @@ using UnityEngine;
 public class SelfBalanceController : MonoBehaviour, IRobotController
 {
     [SerializeField] RobotController _robotController;
-    [SerializeField] PID _pidMotor;
+    [SerializeField] PID _pidSpeed;
     [SerializeField] PID _pidAngle;
-    [SerializeField] float _diffDriveRate;
-    [SerializeField] [Range(0f, 1f)] float _angleToSpeedRatio;
+    [SerializeField] PID _pidLeftMotor;
+    [SerializeField] PID _pidRightMotor;
+
 
     public RobotController Robot { get { return _robotController; } }
-    public PID PIDMotor { get { return _pidMotor; } set { _pidMotor = value; } }
-    public PID PIDAngle { get { return _pidAngle; } set { _pidAngle = value; } }
-    public float DiffDriveRate { get { return _diffDriveRate; } set { _diffDriveRate = value; } }
+    public PID PIDSpeed { get { return _pidSpeed; } }
+    public PID PIDAngle { get { return _pidAngle; } }
+    public PID PIDLeftMotor { get { return _pidLeftMotor; } }
+    public PID PIDRightMotor { get { return _pidRightMotor; } }
+
 
     public float BodyAngle { get; private set; }
     public float GoalBodyAngle { get; private set; }
 
-    public float GoalMotorPower { get; private set; }
 
-    public float AngleToSpeedRatio { get { return _angleToSpeedRatio; } set { _angleToSpeedRatio = value; } }
-
-    public float MotorError { get; private set; }
+    public float SpeedError { get; private set; }
     public float AngleError { get; private set; }
     public float TotalError { get; private set; }
 
@@ -34,26 +34,53 @@ public class SelfBalanceController : MonoBehaviour, IRobotController
     }
     private void Update()
     {
-        GoalMotorPower = Input.GetAxisRaw("Vertical");
+        //UpdateOnlyAngle();
+        UpdateAngleAndGoalAngle();
+        //UpdateAll();
+    }
 
+    private void UpdateOnlyAngle()
+    {
         BodyAngle = Robot.GetBodyAngle();
+
         GoalBodyAngle = 0f;
 
-        Robot.DiffDrive = DiffDriveRate * Input.GetAxisRaw("Horizontal");
-
-        float motorInError = GoalMotorPower - Robot.MotorPower;
-        MotorError = PIDMotor.CalcError(Time.fixedDeltaTime, motorInError);
-
-        float angleInError = (GoalBodyAngle - BodyAngle) / Robot.MaxBodyAngle - MotorError;
+        float angleInError = GoalBodyAngle - BodyAngle;
         AngleError = PIDAngle.CalcError(Time.fixedDeltaTime, angleInError);
 
-        //loat totalError = 0f;
-        //if (Mathf.Abs(AngleError) > AngleToSpeedRatio)
-        //    TotalError = AngleError;// Mathf.Clamp(totalErr, -1f, 1f);
-        //else
-        //    TotalError = -MotorError;
+        Robot.GoalAvgVelocity = -AngleError;
+    }
 
-        Robot.MotorPower = AngleError;// +MotorError;
-        //float totalErr = (1f - AngleToSpeedRatio) * AngleError + AngleToSpeedRatio * MotorError;
+    private void UpdateAngleAndGoalAngle()
+    {
+        BodyAngle = Robot.GetBodyAngle();
+
+        float speedInError = Robot.InputAvgVelocity - Robot.AvgSignedVelocity;
+        SpeedError = PIDSpeed.CalcError(Time.fixedDeltaTime, speedInError);
+        GoalBodyAngle = SpeedError;
+
+        float angleInError = GoalBodyAngle - BodyAngle;
+        AngleError = PIDAngle.CalcError(Time.fixedDeltaTime, angleInError);
+
+        Robot.GoalAvgVelocity = -AngleError;
+
+    }
+
+    private void UpdateAll()
+    {
+        BodyAngle = Robot.GetBodyAngle();
+
+        float speedInError = Robot.InputAvgVelocity - Robot.AvgSignedVelocity;
+        SpeedError = PIDSpeed.CalcError(Time.fixedDeltaTime, speedInError);
+        GoalBodyAngle = SpeedError;
+
+        float angleInError = GoalBodyAngle - BodyAngle;
+        AngleError = PIDAngle.CalcError(Time.fixedDeltaTime, angleInError);
+
+        //if (Mathf.Abs(AngleError) < 0.1f)
+        //    Robot.
+        //    Robot.GoalAvgVelocity = Robot.InputAvgVelocity;
+        //else
+        Robot.GoalAvgVelocity = /*GoalBodyAngle*/ -AngleError;
     }
 }
