@@ -8,12 +8,13 @@ public interface IRobotController
 }
 public class RobotController : MonoBehaviour
 {
-    [SerializeField] Transform _robotBody;
+    [SerializeField] Rigidbody _robotBody;
     [SerializeField] WheelController _leftWheel;
     [SerializeField] WheelController _rightWheel;
     [SerializeField] RobotParameters _robotParams;
+    [SerializeField] Vector3 _centerOfMassOffset;
 
-    public Transform RobotBody { get { return _robotBody; } }
+    public Rigidbody RobotBody { get { return _robotBody; } }
     public WheelController LeftWheel { get { return _leftWheel; } }
     public WheelController RightWheel { get { return _rightWheel; } }
     public RobotParameters Params { get { return _robotParams; } }
@@ -33,8 +34,10 @@ public class RobotController : MonoBehaviour
 
     private void Start()
     {
+        RobotBody.centerOfMass = _centerOfMassOffset;
         LeftWheel.WheelRigidBody.maxAngularVelocity = 10000f;
         RightWheel.WheelRigidBody.maxAngularVelocity = 10000f;
+
     }
 
     private void Update()
@@ -45,18 +48,18 @@ public class RobotController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        LeftWheel.UpdateWheel(GoalAvgVelocity * (1f - GoalDiffDrive), Params.MaxVelocity * (1f + GoalDiffDrive), Params.MaxMotorPower);
-        RightWheel.UpdateWheel(GoalAvgVelocity * (1f + GoalDiffDrive), Params.MaxVelocity * (1f - GoalDiffDrive), Params.MaxMotorPower);
+        LeftWheel.UpdateWheel(GoalAvgVelocity * (1f + GoalDiffDrive), Params.MaxVelocity * (1f - GoalDiffDrive), Params.MaxMotorPower);
+        RightWheel.UpdateWheel(GoalAvgVelocity * (1f - GoalDiffDrive), Params.MaxVelocity * (1f + GoalDiffDrive), Params.MaxMotorPower);
     }
 
     public float GetBodyAngle()
     {
-        float cosAngle = Vector3.Dot(RobotBody.up, Vector3.up);
+        float cosAngle = Vector3.Dot(RobotBody.transform.up, Vector3.up);
         if (cosAngle == 1f)
             return 0f;
 
-        Vector3 cross = Vector3.Cross(Vector3.up, RobotBody.up);
-        if (Vector3.Dot(cross, RobotBody.right) > 0f)
+        Vector3 cross = Vector3.Cross(Vector3.up, RobotBody.transform.up);
+        if (Vector3.Dot(cross, RobotBody.transform.right) > 0f)
             return Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
         return -Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
     }

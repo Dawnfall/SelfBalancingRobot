@@ -11,10 +11,8 @@ public class UIController : MonoBehaviour
     [SerializeField] Text _wheelsMotorsText;
     [SerializeField] Text _bodyText;
     [SerializeField] Text _pidAngleText;
-    [SerializeField] Text _motorPowerText;
     [SerializeField] Text _pidSpeedText;
 
-    //[SerializeField] SelfBalanceController _robot;
     public SelfBalanceController robot;
 
     private void Update()
@@ -40,12 +38,5 @@ public class UIController : MonoBehaviour
         _pidSpeedText.text =
             $"Ep: {robot.PIDSpeed.Ep.ToString(format3)}  Ei: {robot.PIDSpeed.Ei.ToString(format3)}  Ed: {robot.PIDSpeed.Ed.ToString(format3)}\n" +
             $"Err: {robot.PIDSpeed.Err.ToString(format3)}";
-        //_motorPowerText.text = $"Curr: Goal: {selfBalanceController.GoalMotorPower.ToString(format2)}";
-
-
-
-
     }
-
-    /* {robot.Robot.GoalMotorPower.ToString(format2)} */
 }

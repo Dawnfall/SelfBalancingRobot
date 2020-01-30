@@ -35,8 +35,8 @@ public class SelfBalanceController : MonoBehaviour, IRobotController
     private void Update()
     {
         //UpdateOnlyAngle();
-        UpdateAngleAndGoalAngle();
-        //UpdateAll();
+        //UpdateAngleAndGoalAngle();
+        UpdateAll();
     }
 
     private void UpdateOnlyAngle()
@@ -63,7 +63,6 @@ public class SelfBalanceController : MonoBehaviour, IRobotController
         AngleError = PIDAngle.CalcError(Time.fixedDeltaTime, angleInError);
 
         Robot.GoalAvgVelocity = -AngleError;
-
     }
 
     private void UpdateAll()
@@ -77,10 +76,8 @@ public class SelfBalanceController : MonoBehaviour, IRobotController
         float angleInError = GoalBodyAngle - BodyAngle;
         AngleError = PIDAngle.CalcError(Time.fixedDeltaTime, angleInError);
 
-        //if (Mathf.Abs(AngleError) < 0.1f)
-        //    Robot.
-        //    Robot.GoalAvgVelocity = Robot.InputAvgVelocity;
-        //else
-        Robot.GoalAvgVelocity = /*GoalBodyAngle*/ -AngleError;
+        Robot.GoalAvgVelocity = -AngleError;
+
+
     }
 }

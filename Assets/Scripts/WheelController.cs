@@ -28,11 +28,6 @@ public class WheelController
 
     public float MotorPower { get; private set; }
 
-
-    //public float GoalMotorPower { get; private set; }
-
-    //public PID PIDWheel { get { return _wheelPid; } }
-
     public Vector3 WheelForward
     {
         get
@@ -44,15 +39,12 @@ public class WheelController
     public void UpdateWheel(float goalAvgVelocity, float maxVelocity, float maxMotorPower)
     {
         GoalVelocity = goalAvgVelocity;
-        WheelRigidBody.velocity = WheelForward * GoalVelocity;
 
-        //float velocityInError = GoalVelocity - SignedVelocity;
-        //VelocityError = WheelPID.CalcError(Time.fixedDeltaTime, velocityInError);
+        float velocityInError = GoalVelocity - SignedVelocity;
+        VelocityError = WheelPID.CalcError(Time.fixedDeltaTime, velocityInError);
 
-        ////TODO: pid
-        //MotorPower = VelocityError * maxMotorPower;
-        ////Debug.Log(MotorPower);
-        //WheelRigidBody.AddForce(WheelForward * MotorPower);
+        MotorPower = VelocityError * maxMotorPower;
+        WheelRigidBody.AddTorque(WheelRigidBody.transform.right * MotorPower);
     }
 
 }
