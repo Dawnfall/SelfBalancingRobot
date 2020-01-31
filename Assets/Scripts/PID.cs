@@ -8,10 +8,11 @@ public class PID
     [SerializeField] float _kp;
     [SerializeField] float _ki;
     [SerializeField] float _kd;
-
+    [SerializeField] float _integralClamp = 0f;
     public float Kp { get { return _kp; } set { _kp = value; } }
     public float Ki { get { return _ki; } set { _ki = value; } }
     public float Kd { get { return _kd; } set { _kd = value; } }
+    public float IntegralClamp { get { return _integralClamp; } set { _integralClamp = value; } }
 
     public float Ep { get; private set; }
     public float Ei { get; private set; }
@@ -26,15 +27,21 @@ public class PID
         float ki = Ki * deltaTime;
         float kd = Kd * deltaTime * 1000f;
 
-        Ep = Kp * error; //proportional error
-        //Ei = Mathf.Clamp(Ei + error * ki, -1f, 1f); //integral error
-        Ei = Ei + error * ki; //integral error
+        //proportional error
+        Ep = Kp * error;
 
-        Ed = (error - m_prevError) * kd; //derivative error
-        //Err = Mathf.Clamp(Ep + Ei + Ed, -1f, 1f); //total error as the sum
+        //integral error
+        if (IntegralClamp != 0f)
+            Ei = Mathf.Clamp(Ei + error * ki, -IntegralClamp, IntegralClamp);
+        else
+            Ei = Ei + error * ki; //integral error
+
+        //derivative error
+        Ed = (error - m_prevError) * kd;
+        m_prevError = error;
+
         Err = Ep + Ei + Ed; //total error as the sum
 
-        m_prevError = error;
         return Err;
     }
 }

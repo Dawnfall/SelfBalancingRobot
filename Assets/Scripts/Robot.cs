@@ -6,9 +6,8 @@ using UnityEngine;
 // Represents 2wheeled robot
 
 // it is capable of detecting controll input
-// it can measure +/- angle from the global up vector and body up vector3
+// it can measure +/- angle from the world up vector and localUp vector3
 // it has two identical motors for powering wheels
-
 
 public class Robot : MonoBehaviour
 {
@@ -53,7 +52,9 @@ public class Robot : MonoBehaviour
         // inputs and measurements
         VertInput = Input.GetAxisRaw("Vertical");
         HorInput = Input.GetAxisRaw("Horizontal");
-        BodyAngle = getSignedAngleBetween(RobotBody.transform.up, Vector3.up, RobotBody.transform.right);
+
+        //BodyAngle = signedAngleBetween(RobotBody.transform.up, Vector3.up, RobotBody.transform.right); //this is more general(and assumes we know local up vector) but a bit slower
+        BodyAngle = signedAngleBetweenOptimized(RobotBody.transform.forward, Vector3.up);  //assumes we know local forward vector
 
         // self balancing by the controller
         Controller.HandleRobot(this);
@@ -78,7 +79,7 @@ public class Robot : MonoBehaviour
     }
 
     //assumes normalized vectors!
-    public static float getSignedAngleBetween(Vector3 a, Vector3 b, Vector3 referenceNormal)
+    public static float signedAngleBetween(Vector3 a, Vector3 b, Vector3 referenceNormal)
     {
         float cosAngle = Vector3.Dot(a, b); //gets angle between two normalized vectors
         if (cosAngle == 1f)
@@ -89,5 +90,11 @@ public class Robot : MonoBehaviour
         if (Vector3.Dot(cross, referenceNormal) > 0f)
             return Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
         return -Mathf.Acos(cosAngle) * Mathf.Rad2Deg;
+    }
+    //assumes normalized vectors! works only for [-90,90] angles
+    public static float signedAngleBetweenOptimized(Vector3 localForward, Vector3 worldUp)
+    {
+        float cosForward = Vector3.Dot(localForward, worldUp); // this will break if we allow more than 90 degree angles but here we dont
+        return Mathf.Acos(cosForward) * Mathf.Rad2Deg - 90f; // local up is exactly 90 degrees 
     }
 }
