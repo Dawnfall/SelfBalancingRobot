@@ -2,82 +2,68 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-//https://medium.com/husarion-blog/fresh-look-at-self-balancing-robot-algorithm-d50d41711d58
-//TODO: importance calculated dynamically based on angle
-public class SelfBalanceController : MonoBehaviour, IRobotController
+//*********************
+// Uses 4 PID controllers
+//
+// PIDspeed calculates desired angle based on current average motor speed and desired motor speed
+// PIDangle calculates desired average motor speed based on desired goal angle and current angle
+// PIDleftMotor and PIDrightMotor calculate each motor speed based on each desired speed(influenced also by differential drive) and current speed
+
+public class SelfBalanceController : MonoBehaviour
 {
-    [SerializeField] RobotController _robotController;
     [SerializeField] PID _pidSpeed;
     [SerializeField] PID _pidAngle;
     [SerializeField] PID _pidLeftMotor;
     [SerializeField] PID _pidRightMotor;
 
-
-    public RobotController Robot { get { return _robotController; } }
     public PID PIDSpeed { get { return _pidSpeed; } }
     public PID PIDAngle { get { return _pidAngle; } }
     public PID PIDLeftMotor { get { return _pidLeftMotor; } }
     public PID PIDRightMotor { get { return _pidRightMotor; } }
 
 
-    public float BodyAngle { get; private set; }
+    //******************
+    // Goals calculated by this controller
+
     public float GoalBodyAngle { get; private set; }
+    public float GoalDiffDrive { get; private set; }
+
+    public float GoalMotors { get; private set; }
+    public float GoalLeftMotor { get { return GoalMotors * (1f + GoalDiffDrive); } }
+    public float GoalRightMotor { get { return GoalMotors * (1f - GoalDiffDrive); } }
 
 
-    public float SpeedError { get; private set; }
+    //*****************
+    // PID errors
+
+    public float MotorError { get; private set; }
     public float AngleError { get; private set; }
-    public float TotalError { get; private set; }
+    public float LeftWheelMotorError { get; private set; }
+    public float RightWheelMotorError { get; private set; }
 
-    private void Start()
+    public void HandleRobot(Robot robot)
     {
-        GameObject.FindObjectOfType<UIController>().robot = this;
-    }
-    private void Update()
-    {
-        //UpdateOnlyAngle();
-        //UpdateAngleAndGoalAngle();
-        UpdateAll();
-    }
+        //diff drive based on horizontal input
+        GoalDiffDrive = robot.DiffDriveRate * robot.HorInput;
 
-    private void UpdateOnlyAngle()
-    {
-        BodyAngle = Robot.GetBodyAngle();
+        //motor speed error to get desired body angle
+        float motorInError = robot.VertInput - robot.AvgMotorPower / robot.MaxMotorPower;
+        MotorError = PIDSpeed.CalcError(Time.fixedDeltaTime, motorInError);
+        GoalBodyAngle = MotorError;
 
-        GoalBodyAngle = 0f;
-
-        float angleInError = GoalBodyAngle - BodyAngle;
+        //angle error to get desired velocity
+        float angleInError = GoalBodyAngle - robot.BodyAngle;
         AngleError = PIDAngle.CalcError(Time.fixedDeltaTime, angleInError);
 
-        Robot.GoalAvgVelocity = -AngleError;
-    }
+        GoalMotors = -AngleError;
 
-    private void UpdateAngleAndGoalAngle()
-    {
-        BodyAngle = Robot.GetBodyAngle();
+        //we set each wheel motor power based on their appropriate goals
+        float leftVelInError = GoalLeftMotor - robot.LeftMotorPower;
+        LeftWheelMotorError = PIDLeftMotor.CalcError(Time.fixedDeltaTime, leftVelInError);
+        robot.LeftMotorPower = Mathf.Clamp(LeftWheelMotorError, -robot.MaxMotorPower, robot.MaxMotorPower);
 
-        float speedInError = Robot.InputAvgVelocity - Robot.AvgSignedVelocity;
-        SpeedError = PIDSpeed.CalcError(Time.fixedDeltaTime, speedInError);
-        GoalBodyAngle = SpeedError;
-
-        float angleInError = GoalBodyAngle - BodyAngle;
-        AngleError = PIDAngle.CalcError(Time.fixedDeltaTime, angleInError);
-
-        Robot.GoalAvgVelocity = -AngleError;
-    }
-
-    private void UpdateAll()
-    {
-        BodyAngle = Robot.GetBodyAngle();
-
-        float speedInError = Robot.InputAvgVelocity - Robot.AvgSignedVelocity;
-        SpeedError = PIDSpeed.CalcError(Time.fixedDeltaTime, speedInError);
-        GoalBodyAngle = SpeedError;
-
-        float angleInError = GoalBodyAngle - BodyAngle;
-        AngleError = PIDAngle.CalcError(Time.fixedDeltaTime, angleInError);
-
-        Robot.GoalAvgVelocity = -AngleError;
-
-
+        float rightVelInError = GoalRightMotor - robot.RightMotorPower;
+        RightWheelMotorError = PIDRightMotor.CalcError(Time.fixedDeltaTime, rightVelInError);
+        robot.RightMotorPower = Mathf.Clamp(RightWheelMotorError, -robot.MaxMotorPower, robot.MaxMotorPower);
     }
 }

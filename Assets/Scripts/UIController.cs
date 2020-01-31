@@ -13,30 +13,30 @@ public class UIController : MonoBehaviour
     [SerializeField] Text _pidAngleText;
     [SerializeField] Text _pidSpeedText;
 
-    public SelfBalanceController robot;
+    public Robot robot;
 
     private void Update()
     {
         if (robot == null)
             return;
 
-        _bodyText.text = $"Curr: {robot.BodyAngle.ToString(format2)}  Goal: {robot.GoalBodyAngle.ToString(format2)}";
+        _bodyText.text = $"Curr: {robot.BodyAngle.ToString(format2)}  Goal: {robot.Controller.GoalBodyAngle.ToString(format2)}";
 
         _wheelsSpeedText.text =
             $"Speed\n" +
-            $"Curr: {robot.Robot.AvgSignedVelocity.ToString(format2)}  Goal: {robot.Robot.GoalAvgVelocity.ToString(format2)}  Input: {robot.Robot.InputAvgVelocity.ToString(format2)}\n" +
-            $"L: Curr: {robot.Robot.LeftWheel.SignedVelocity.ToString(format2)}  Goal: {robot.Robot.LeftWheel.GoalVelocity.ToString(format2)}  Err: {robot.Robot.LeftWheel.VelocityError}\n" +
-            $"R: Curr: {robot.Robot.RightWheel.SignedVelocity.ToString(format2)}  Goal: {robot.Robot.RightWheel.GoalVelocity.ToString(format2)}  Err: {robot.Robot.RightWheel.VelocityError}";
+            $"Curr: {robot.AvgMotorPower.ToString(format2)}  Goal: {robot.Controller.GoalMotors.ToString(format2)}  Input: {robot.VertInput.ToString(format2)}\n" +
+            $"L: Curr: {robot.LeftMotorPower.ToString(format2)}  Goal: {robot.Controller.GoalLeftMotor.ToString(format2)}  Err: {robot.Controller.LeftWheelMotorError}\n" +
+            $"R: Curr: {robot.RightMotorPower.ToString(format2)}  Goal: {robot.Controller.GoalRightMotor.ToString(format2)}  Err: {robot.Controller.RightWheelMotorError}";
         _wheelsMotorsText.text =
             $"Motor\n" +
-            $"L: {robot.Robot.LeftWheel.MotorPower}\n" +
-            $"R: {robot.Robot.RightWheel.MotorPower}";
+            $"L: {robot.LeftMotorPower}\n" +
+            $"R: {robot.RightMotorPower}";
 
         _pidAngleText.text =
-            $"Ep: {robot.PIDAngle.Ep.ToString(format3)}  Ei: {robot.PIDAngle.Ei.ToString(format3)}  Ed: {robot.PIDAngle.Ed.ToString(format3)}\n" +
-            $"Err: {robot.PIDAngle.Err.ToString(format3)}";
+            $"Ep: {robot.Controller.PIDAngle.Ep.ToString(format3)}  Ei: {robot.Controller.PIDAngle.Ei.ToString(format3)}  Ed: {robot.Controller.PIDAngle.Ed.ToString(format3)}\n" +
+            $"Err: {robot.Controller.PIDAngle.Err.ToString(format3)}";
         _pidSpeedText.text =
-            $"Ep: {robot.PIDSpeed.Ep.ToString(format3)}  Ei: {robot.PIDSpeed.Ei.ToString(format3)}  Ed: {robot.PIDSpeed.Ed.ToString(format3)}\n" +
-            $"Err: {robot.PIDSpeed.Err.ToString(format3)}";
+            $"Ep: {robot.Controller.PIDSpeed.Ep.ToString(format3)}  Ei: {robot.Controller.PIDSpeed.Ei.ToString(format3)}  Ed: {robot.Controller.PIDSpeed.Ed.ToString(format3)}\n" +
+            $"Err: {robot.Controller.PIDSpeed.Err.ToString(format3)}";
     }
 }
