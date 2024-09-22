@@ -1,2 +1,2 @@
 # SelfBalancingRobot
-Self balancing robot with diferential drive
+Self balancing robot using PID controller and diferential drive.
